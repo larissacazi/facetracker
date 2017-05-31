@@ -1,5 +1,6 @@
 package zimmermann.larissa.facetracker;
 
+import android.content.res.AssetManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,7 +16,10 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -50,20 +54,17 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //getWindow().setFlags(WindowManager.LayoutParams.SCREEN_ORIENTATION_CHANGED, WindowManager.LayoutParams.SCREEN_ORIENTATION_CHANGED);
+        getWindow().setFlags(WindowManager.LayoutParams.SCREEN_ORIENTATION_CHANGED, WindowManager.LayoutParams.SCREEN_ORIENTATION_CHANGED);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON, WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         setContentView(R.layout.activity_main);
-
-       // getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-       // getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         javaCameraView = (JavaCameraView)findViewById(R.id.java_camera_view);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
         //javaCameraView.setMaxFrameSize(640, 480);
 
         javaCameraView.setCvCameraViewListener(this);
-    // Example of a call to a native method
-    //TextView tv = (TextView) findViewById(R.id.sample_text);
-    //tv.setText(stringFromJNI());
     }
 
     @Override
@@ -110,8 +111,12 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
+        Mat mRgbaT = mRgba.t();
+        Core.flip(mRgba.t(), mRgbaT, 1);
+        Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
+
         Log.i(TAG, "entrou");
-        convertGray(mRgba.getNativeObjAddr(), imgGray.getNativeObjAddr());
+        convertGray(mRgbaT.getNativeObjAddr(), imgGray.getNativeObjAddr());
         Log.i(TAG, "passou");
 
         return imgGray;
@@ -123,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
      */
     //public native String stringFromJNI();
     public native int convertGray(long matAddrGr, long matAddrRgba);
+    public native void getTracker(long addrRgba, long addrFace, AssetManager mng);
 
     // Used to load the 'native-lib' library on application startup.
     static {

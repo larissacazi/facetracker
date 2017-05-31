@@ -43,8 +43,10 @@ target_link_libraries( # Specifies the target library.
                        # included in the NDK.
                        ${log-lib} )
 
-set(pathToProject C:/Users/laris/AndroidStudioProjects/Facetracker)
+#set(pathToProject C:/Users/laris/AndroidStudioProjects/Facetracker)
+set(pathToProject C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker)
 set(pathToOpenCv C:/opencv-3.2.0-android-sdk/OpenCV-android-sdk)
+set(pathToFaceTracker C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker/app/src/main/cpp/FaceTracker)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
