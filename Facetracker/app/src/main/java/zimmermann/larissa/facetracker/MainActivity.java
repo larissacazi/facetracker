@@ -133,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
+        //onde esta esse arquivo?
         System.loadLibrary("opencv_java3");
     }
 }
