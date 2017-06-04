@@ -28,7 +28,7 @@ using namespace std;
 queue<int64> time_queue;
 
 //Estruturas que parecem faltar ============================================//
-/*
+
 struct Engine
 {
     android_app* app;
@@ -168,7 +168,7 @@ static void engine_handle_cmd(android_app* app, int32_t cmd)
     }
 }
 
-*/
+
  void Draw(cv::Mat &image, cv::Mat &shape, cv::Mat &visi)
 {
   int i,n = shape.rows/2; cv::Point p1,p2; cv::Scalar c;
