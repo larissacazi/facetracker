@@ -26,6 +26,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/core.hpp>
+#include "android_native_app_glue.h"
 
 
 
@@ -35,5 +37,143 @@
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
+struct Engine
+{
+    android_app* app;
+    cv::Ptr<cv::VideoCapture> capture;
+};
+
+static cv::Size calc_optimal_camera_resolution(const char* supported, int width, int height)
+{
+    int frame_width = 0;
+    int frame_height = 0;
+
+    size_t prev_idx = 0;
+    size_t idx = 0;
+    float min_diff = FLT_MAX;
+
+    do
+    {
+        int tmp_width;
+        int tmp_height;
+
+        prev_idx = idx;
+        while ((supported[idx] != '\0') && (supported[idx] != ','))
+            idx++;
+
+        sscanf(&supported[prev_idx], "%dx%d", &tmp_width, &tmp_height);
+
+        int w_diff = width - tmp_width;
+        int h_diff = height - tmp_height;
+        if ((h_diff >= 0) && (w_diff >= 0))
+        {
+            if ((h_diff <= min_diff) && (tmp_height <= 720))
+            {
+                frame_width = tmp_width;
+                frame_height = tmp_height;
+                min_diff = h_diff;
+            }
+        }
+
+        idx++; // to skip comma symbol
+
+    } while(supported[idx-1] != '\0');
+
+    return cv::Size(frame_width, frame_height);
+}
+
+static void engine_draw_frame(Engine* engine, const cv::Mat& frame)
+{
+    if (engine->app->window == NULL)
+        return; // No window.
+
+    ANativeWindow_Buffer buffer;
+    if (ANativeWindow_lock(engine->app->window, &buffer, NULL) < 0)
+    {
+        LOGW("Unable to lock window buffer");
+        return;
+    }
+
+    int32_t* pixels = (int32_t*)buffer.bits;
+
+    int left_indent = (buffer.width-frame.cols)/2;
+    int top_indent = (buffer.height-frame.rows)/2;
+
+    if (top_indent > 0)
+    {
+        memset(pixels, 0, top_indent*buffer.stride*sizeof(int32_t));
+        pixels += top_indent*buffer.stride;
+    }
+
+    for (int yy = 0; yy < frame.rows; yy++)
+    {
+        if (left_indent > 0)
+        {
+            memset(pixels, 0, left_indent*sizeof(int32_t));
+            memset(pixels+left_indent+frame.cols, 0, (buffer.stride-frame.cols-left_indent)*sizeof(int32_t));
+        }
+        int32_t* line = pixels + left_indent;
+        size_t line_size = frame.cols*4*sizeof(unsigned char);
+        memcpy(line, frame.ptr<unsigned char>(yy), line_size);
+        // go to next line
+        pixels += buffer.stride;
+    }
+    ANativeWindow_unlockAndPost(engine->app->window);
+}
+
+static void engine_handle_cmd(android_app* app, int32_t cmd)
+{
+    Engine* engine = (Engine*)app->userData;
+    switch (cmd)
+    {
+        case APP_CMD_INIT_WINDOW:
+            if (app->window != NULL)
+            {
+                LOGI("APP_CMD_INIT_WINDOW");
+
+                engine->capture = cv::makePtr<cv::VideoCapture>(0);
+
+                union {double prop; const char* name;} u;
+                u.prop = engine->capture->get(cv::CV_CAP_PROP_SUPORTED_PREVIEW_SIZES_STRING);
+
+                int view_width = ANativeWindow_getWidth(app->window);
+                int view_height = ANativeWindow_getHeight(app->window);
+
+                cv::Size camera_resolution;
+                if (u.name)
+                    camera_resolution = calc_optimal_camera_resolution(u.name, 640, 480);
+                else
+                {
+                    LOGE("Cannot get supported camera camera_resolutions");
+                    camera_resolution = cv::Size(ANativeWindow_getWidth(app->window),
+                                                 ANativeWindow_getHeight(app->window));
+                }
+
+                if ((camera_resolution.width != 0) && (camera_resolution.height != 0))
+                {
+                    engine->capture->set(cv::CAP_PROP_FRAME_WIDTH, camera_resolution.width);
+                    engine->capture->set(cv::CAP_PROP_FRAME_HEIGHT, camera_resolution.height);
+                }
+
+                float scale = std::min((float)view_width/camera_resolution.width,
+                                       (float)view_height/camera_resolution.height);
+
+                if (ANativeWindow_setBuffersGeometry(app->window, (int)(view_width/scale),
+                                                     int(view_height/scale), WINDOW_FORMAT_RGBA_8888) < 0)
+                {
+                    LOGE("Cannot set pixel format!");
+                    return;
+                }
+
+                LOGI("Camera initialized at resolution %dx%d", camera_resolution.width, camera_resolution.height);
+            }
+            break;
+        case APP_CMD_TERM_WINDOW:
+            LOGI("APP_CMD_TERM_WINDOW");
+
+            engine->capture->release();
+            break;
+    }
+}
 
 #endif /* NATIVEACT_H_ */

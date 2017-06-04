@@ -1,6 +1,6 @@
 /*
  * This file is auto-generated.  DO NOT MODIFY.
- * Original file: C:\\Users\\laris\\Documents\\Mestrado\\Disciplinas\\2017.1\\SistemasOperacionais\\Projeto\\facetracker\\Facetracker\\openCVLibrary320\\src\\main\\aidl\\org\\opencv\\engine\\OpenCVEngineInterface.aidl
+ * Original file: /home/sumi/MyGit/Facetracker/openCVLibrary320/src/main/aidl/org/opencv/engine/OpenCVEngineInterface.aidl
  */
 package org.opencv.engine;
 /**

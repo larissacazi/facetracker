@@ -44,15 +44,16 @@ target_link_libraries( # Specifies the target library.
                        ${log-lib} )
 
 #set(pathToProject C:/Users/laris/AndroidStudioProjects/Facetracker)
-set(pathToProject C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker)
-set(pathToOpenCv C:/opencv-3.2.0-android-sdk/OpenCV-android-sdk)
-set(pathToFaceTracker C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker/app/src/main/cpp/FaceTracker)
+set(pathToProject /home/sumi/MyGit/Facetracker/)
+set(pathToOpenCv /OpenCV-android-sdk/)
+set(pathToFaceTracker /home/sumi/MyGit/Facetracker/app/src/main/cpp/FaceTracker/)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 #Addition suggested by Bruno Alexandre Krinski 20160825
 include_directories(${pathToOpenCv}/sdk/native/jni/include)
+include_directories(${pathToFaceTracker}/)
 
 #Added by IDE on project create
 #add_library( native-lib SHARED src/main/cpp/native-lib.cpp )

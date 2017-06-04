@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <android/looper.h>
-#include <android/>
 #include <sys/types.h>
 #include <limits.h>
 #include <android/asset_manager.h>
@@ -12,16 +11,14 @@
 #include <opencv2/opencv.hpp>
 #include "FaceTracker/Tracker.h"
 #include "nativeact.h"
+#include "android_native_app_glue.h"
 
 using namespace FACETRACKER;
 using namespace cv;
 using namespace std;
 
 extern "C"
-JNIEXPORT jstring JNICALL
-Java_zimmermann_larissa_facetracker_MainActivity_stringFromJNI(
-        JNIEnv* env,
-        jobject /* this */) {
+JNIEXPORT jstring JNICALL Java_zimmermann_larissa_facetracker_MainActivity_stringFromJNI(JNIEnv* env, jobject /* this */) {
     std::string hello = "Hello from C++";
     return env->NewStringUTF(hello.c_str());
 }
@@ -198,11 +195,11 @@ JNIEXPORT void JNICALL Java_zimmermann_larissa_facetracker_MainActivity_getTrack
         while ((ident = ALooper_pollAll(0, NULL, &events, (void **) &source)) >= 0) {
             // Process this event.
             if (source != NULL) {
-                source->process(app, source);
+                source->process(source->app, source);
             }
 
             // Check if we are exiting.
-            if (app->destroyRequested != 0) {
+            if (source->app->destroyRequested != 0) {
                 LOGI("Engine thread destroy requested!");
                 return;
             }
