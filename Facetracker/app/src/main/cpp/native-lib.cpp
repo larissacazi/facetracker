@@ -380,7 +380,7 @@ JNIEXPORT void JNICALL Java_zimmermann_larissa_facetracker_MainActivity_getTrack
         // Capture frame from camera and draw it
         if (!engine.capture.empty()) {
             if (engine.capture->grab())
-                engine.capture->retrieve(drawing_frame, CV_CAP_ANDROID_COLOR_FRAME_RGBA);
+                engine.capture->retrieve(drawing_frame, 3);
 #if cam
             cv::flip(drawing_frame, drawing_frame,1);
 #endif
