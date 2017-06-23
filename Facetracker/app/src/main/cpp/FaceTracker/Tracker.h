@@ -63,11 +63,12 @@ namespace FACETRACKER
     Tracker(){;}
     
     /** Constructor from model file */
-    Tracker(const char* fname){this->Load(fname);}
+    Tracker(const char* fname){
+        this->Load(fname);
+    }
 
     /** Constructor from components */
-    Tracker(CLM &clm,FDet &fdet,MFCheck &fcheck,
-	    cv::Mat &rshape,cv::Scalar &simil){
+    Tracker(CLM &clm,FDet &fdet,MFCheck &fcheck, cv::Mat &rshape,cv::Scalar &simil){
       this->Init(clm,fdet,fcheck,rshape,simil);
     }
     /**

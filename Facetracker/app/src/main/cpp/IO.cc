@@ -37,7 +37,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
-#include <FaceTracker/IO.h>
+#include "FaceTracker/IO.h"
 #include <stdio.h>
 using namespace FACETRACKER;
 using namespace std;
@@ -105,28 +105,48 @@ void IO::WriteMat(ofstream& s,cv::Mat &M)
 //===========================================================================
 cv::Mat IO::LoadCon(const char* fname)
 {
-  int i,n; char str[256]; char c; fstream file(fname,fstream::in);
+  int i,n;
+  char str[256];
+  char c;
+  fstream file(fname,fstream::in);
   if(!file.is_open()){
-    printf("ERROR(%s,%d) : Failed opening file %s for reading\n", 
+    printf("ERROR(%s,%d) : Failed opening file %s for reading\n",
 	   __FILE__,__LINE__,fname); abort();
   }
-  while(1){file >> str; if(strncmp(str,"n_connections:",14) == 0)break;}
+  while(1){
+      file >> str;
+      if(strncmp(str,"n_connections:",14) == 0)break;
+  }
   file >> n; cv::Mat con(2,n,CV_32S);
-  while(1){file >> c; if(c == '{')break;}
+  while(1){
+      file >> c;
+      if(c == '{')break;
+  }
   for(i = 0; i < n; i++)file >> con.at<int>(0,i) >> con.at<int>(1,i);
-  file.close(); return con;
+  file.close();
+  return con;
 }
 //=============================================================================
 cv::Mat IO::LoadTri(const char* fname)
 {
-  int i,n; char str[256]; char c; fstream file(fname,fstream::in);
+  int i,n;
+  char str[256];
+  char c;
+  fstream file(fname,fstream::in);
   if(!file.is_open()){
     printf("ERROR(%s,%d) : Failed opening file %s for reading\n", 
 	   __FILE__,__LINE__,fname); abort();
   }
-  while(1){file >> str; if(strncmp(str,"n_tri:",6) == 0)break;}
-  file >> n; cv::Mat tri(n,3,CV_32S);
-  while(1){file >> c; if(c == '{')break;}
+  while(1){
+      file >> str;
+      if(strncmp(str,"n_tri:",6) == 0)break;
+  }
+  file >> n;
+  cv::Mat tri(n,3,CV_32S);
+  while(1){
+      file >> c;
+      if(c == '{')break;
+  }
   for(i = 0; i < n; i++)
     file >> tri.at<int>(i,0) >> tri.at<int>(i,1) >> tri.at<int>(i,2);
   file.close(); return tri;

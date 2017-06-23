@@ -10,14 +10,8 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 # Gradle automatically packages shared libraries with your APK.
 
-add_library( # Sets the name of the library.
-             native-lib
-
-             # Sets the library as a shared library.
-             SHARED
-
-             # Provides a relative path to your source file(s).
-             src/main/cpp/native-lib.cpp )
+add_library(native-lib SHARED src/main/cpp/native-lib.cpp)
+find_library(log-lib log)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -25,48 +19,66 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_library( # Sets the name of the path variable.
-              log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
 
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
 
-target_link_libraries( # Specifies the target library.
-                       native-lib
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
-
 #set(pathToProject C:/Users/laris/AndroidStudioProjects/Facetracker)
-set(pathToProject /home/sumi/MyGit/Facetracker/)
-set(pathToOpenCv /OpenCV-android-sdk/)
-set(pathToFaceTracker /home/sumi/MyGit/Facetracker/app/src/main/cpp/FaceTracker/)
+#set(pathToProject C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker)
+#set(pathToOpenCv C:/opencv-3.2.0-android-sdk/OpenCV-android-sdk)
+#set(pathToFaceTracker C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker/app/src/main/cpp/FaceTracker)
+
+set(pathToProject /run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/)
+set(pathToOpenCv /run/media/gabriel/Arquivos/Graduacao/2017.01/SO/OpenCV-android-sdk/)
+set(pathToFaceTracker /run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/app/src/main/cpp/FaceTracker)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 
 #Addition suggested by Bruno Alexandre Krinski 20160825
 include_directories(${pathToOpenCv}/sdk/native/jni/include)
-include_directories(${pathToFaceTracker}/)
-
-#Added by IDE on project create
-#add_library( native-lib SHARED src/main/cpp/native-lib.cpp )
-
-#Addition suggested by Bruno Alexandre Krinski 20160825
 add_library( lib_opencv SHARED IMPORTED )
-
-#Addition suggested by Bruno Alexandre Krinski 20160825
 set_target_properties(lib_opencv PROPERTIES IMPORTED_LOCATION ${pathToProject}/app/src/main/jniLibs/${ANDROID_ABI}/libopencv_java3.so)
+target_link_libraries(native-lib $\{log-lib} lib_opencv)
 
-#Added by IDE on project create
-find_library( log-lib log )
+#includes FaceTracker
+include_directories(/run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/app/src/main/cpp/FaceTracker)
 
-#Added by IDE on project create, Removed and replace with additional parameter suggested by Bruno Alexandre Krinski 20160825
-#target_link_libraries( native-lib $\{log-lib} )
-target_link_libraries( native-lib $\{log-lib} lib_opencv)
+#include libraries
+add_library(CLM SHARED src/main/cpp/CLM.cc)
+add_library(FCheck SHARED src/main/cpp/FCheck.cc)
+add_library(FDet SHARED src/main/cpp/FDet.cc)
+add_library(IO SHARED src/main/cpp/IO.cc)
+add_library(Patch SHARED src/main/cpp/Patch.cc)
+add_library(PAW SHARED src/main/cpp/PAW.cc)
+add_library(PDM SHARED src/main/cpp/PDM.cc)
+add_library(Tracker SHARED src/main/cpp/Tracker.cc)
+add_library(face_tracker SHARED src/main/cpp/face_tracker.cc)
+
+target_link_libraries(CLM $\{log-lib} lib_opencv)
+target_link_libraries(FCheck $\{log-lib} lib_opencv)
+target_link_libraries(FDet $\{log-lib} lib_opencv)
+target_link_libraries(IO $\{log-lib} lib_opencv)
+target_link_libraries(Patch $\{log-lib} lib_opencv)
+target_link_libraries(PAW $\{log-lib} lib_opencv)
+target_link_libraries(PDM $\{log-lib} lib_opencv)
+target_link_libraries(Tracker $\{log-lib} lib_opencv)
+target_link_libraries(face_tracker $\{log-lib} lib_opencv)
+
+target_link_libraries(face_tracker Tracker CLM FCheck FDet PAW Patch IO PDM)
+target_link_libraries(PAW IO)
+target_link_libraries(Patch IO)
+target_link_libraries(FCheck PAW IO)
+target_link_libraries(CLM PDM IO Patch)
+target_link_libraries(PDM IO)
+target_link_libraries(Tracker CLM FDet PDM FCheck IO)
+
+target_link_libraries(native-lib android log)
+
+
+
+
+
+
+

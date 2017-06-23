@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private static String TAG = "MainActivity";
     JavaCameraView javaCameraView;
     Mat mRgba, imgGray;
+    boolean failed = true;
 
     BaseLoaderCallback baseLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -63,6 +64,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         javaCameraView = (JavaCameraView)findViewById(R.id.java_camera_view);
         javaCameraView.setVisibility(SurfaceView.VISIBLE);
         //javaCameraView.setMaxFrameSize(640, 480);
+
+        AssetManager assetMgr = this.getAssets();
+        getTracker(assetMgr);
 
         javaCameraView.setCvCameraViewListener(this);
     }
@@ -116,10 +120,23 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         Imgproc.resize(mRgbaT, mRgbaT, mRgba.size());
 
         Log.i(TAG, "entrou");
-        convertGray(mRgbaT.getNativeObjAddr(), imgGray.getNativeObjAddr());
-        Log.i(TAG, "passou");
+        Log.i(TAG, "entrou");
+        //*
 
-        return imgGray;
+        imgGray = mRgbaT;
+
+        failed = trackFace(mRgbaT.getNativeObjAddr(), imgGray.getNativeObjAddr(), failed);
+
+        //convertGray(mRgbaT.getNativeObjAddr(), imgGray.getNativeObjAddr());
+        //*/
+        Log.i(TAG, "passou");
+        Log.i(TAG, "" + failed);
+
+        if(failed){
+            return mRgbaT;
+        }else{
+            return imgGray;
+        }
         //return mRgba;
     }
     /**
@@ -128,12 +145,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
      */
     //public native String stringFromJNI();
     public native int convertGray(long matAddrGr, long matAddrRgba);
-    public native void getTracker(long addrRgba, long addrFace, AssetManager mng);
+    public native void getTracker(AssetManager mng);
+    public native boolean trackFace(long addrRgba, long addrFace, boolean pFailed);
 
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
-        //onde esta esse arquivo?
+        System.loadLibrary("face_tracker");
         System.loadLibrary("opencv_java3");
     }
 }

@@ -3,41 +3,41 @@
 //
 // This file is part of FaceTracker.
 //
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //
 //     * The software is provided under the terms of this licence stricly for
 //       academic, non-commercial, not-for-profit purposes.
-//     * Redistributions of source code must retain the above copyright notice, 
+//     * Redistributions of source code must retain the above copyright notice,
 //       this list of conditions (licence) and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright 
-//       notice, this list of conditions (licence) and the following disclaimer 
-//       in the documentation and/or other materials provided with the 
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions (licence) and the following disclaimer
+//       in the documentation and/or other materials provided with the
 //       distribution.
-//     * The name of the author may not be used to endorse or promote products 
+//     * The name of the author may not be used to endorse or promote products
 //       derived from this software without specific prior written permission.
-//     * As this software depends on other libraries, the user must adhere to 
+//     * As this software depends on other libraries, the user must adhere to
 //       and keep in place any licencing terms of those libraries.
 //     * Any publications arising from the use of this software, including but
 //       not limited to academic journal and conference publications, technical
 //       reports and manuals, must cite the following work:
 //
-//       J. M. Saragih, S. Lucey, and J. F. Cohn. Face Alignment through 
-//       Subspace Constrained Mean-Shifts. International Conference of Computer 
+//       J. M. Saragih, S. Lucey, and J. F. Cohn. Face Alignment through
+//       Subspace Constrained Mean-Shifts. International Conference of Computer
 //       Vision (ICCV), September, 2009.
 //
-// THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED 
-// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
-// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+// THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 // (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 // LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///////////////////////////////////////////////////////////////////////////////
-#include <FaceTracker/FCheck.h>
+#include "FaceTracker/FCheck.h"
 using namespace FACETRACKER;
 using namespace std;
 //===========================================================================
@@ -75,7 +75,7 @@ void FCheck::Write(ofstream &s)
 void FCheck::Read(ifstream &s,bool readType)
 {
   if(readType){int type; s >> type; assert(type == IO::FCHECK);}
-  s >> _b; IO::ReadMat(s,_w); _paw.Read(s); 
+  s >> _b; IO::ReadMat(s,_w); _paw.Read(s);
   crop_.create(_paw._mask.rows,_paw._mask.cols,CV_8U);
   vec_.create(_paw._nPix,1,CV_64F); return;
 }
@@ -90,8 +90,17 @@ bool FCheck::Check(cv::Mat &im,cv::Mat &s)
   cv::MatIterator_<double> vp = vec_.begin<double>();
   cv::MatIterator_<uchar>  cp = crop_.begin<uchar>();
   cv::MatIterator_<uchar>  mp = _paw._mask.begin<uchar>();
-  for(i=0;i<h;i++){for(j=0;j<w;j++,++mp,++cp){if(*mp)*vp++ = (double)*cp;}}
-  double var,mean=cv::sum(vec_)[0]/vec_.rows; vec_-=mean; var = vec_.dot(vec_); 
+
+  #ifdef _OPENMP
+	#pragma omp parallel for
+	#endif
+  for(i=0;i<h;i++){
+    for(j=0;j<w;j++,++mp,++cp){
+      if(*mp)*vp++ = (double)*cp;
+    }
+  }
+
+  double var,mean=cv::sum(vec_)[0]/vec_.rows; vec_-=mean; var = vec_.dot(vec_);
   if(var < 1.0e-10)vec_ = cvScalar(0); else vec_ /= sqrt(var);
   if((_w.dot(vec_)+ _b) > 0)return true; else return false;
 }
@@ -118,14 +127,31 @@ void MFCheck::Save(const char* fname)
 void MFCheck::Write(ofstream &s)
 {
   s << IO::MFCHECK << " " << _fcheck.size() << " ";
-  for(int i = 0; i < (int)_fcheck.size(); i++)_fcheck[i].Write(s); return;
+
+  #ifdef _OPENMP
+	#pragma omp parallel for
+	#endif
+  for(int i = 0; i < (int)_fcheck.size(); i++){
+    _fcheck[i].Write(s);
+  }
+
+  return;
 }
 //===========================================================================
 void MFCheck::Read(ifstream &s,bool readType)
 {
-  if(readType){int type; s >> type; assert(type == IO::MFCHECK);}
+  if(readType){
+    int type;
+    s >> type;
+    assert(type == IO::MFCHECK);
+  }
   int n; s >> n; _fcheck.resize(n);
-  for(int i = 0; i < n; i++)_fcheck[i].Read(s); return;
+
+  for(int i = 0; i < n; i++){
+    _fcheck[i].Read(s);
+  }
+
+  return;
 }
 //===========================================================================
 bool MFCheck::Check(int idx,cv::Mat &im,cv::Mat &s)
