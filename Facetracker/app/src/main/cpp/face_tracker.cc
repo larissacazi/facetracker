@@ -48,86 +48,58 @@ using namespace cv;
 //=============================================================================
 void Draw(cv::Mat &image,cv::Mat &shape,cv::Mat &con,cv::Mat &tri,cv::Mat &visi){
     int i,n = shape.rows/2; cv::Point p1,p2; cv::Scalar c;
-    #ifdef _OPENMP
-    #pragma omp parallel
-    #endif
-    {
-        #ifdef _OPENMP
-        #pragma omp single
-        #endif
-        {
-            //draw lines (point 0 to 1)
-            for(i = 0; i < tri.rows; i++){
-                if(visi.at<int>(tri.at<int>(i,0),0) == 0 ||
-                    visi.at<int>(tri.at<int>(i,1),0) == 0 ||
-                    visi.at<int>(tri.at<int>(i,2),0) == 0)continue;
-                p1 = cv::Point(shape.at<double>(tri.at<int>(i,0),0),
-                    shape.at<double>(tri.at<int>(i,0)+n,0));
-                p2 = cv::Point(shape.at<double>(tri.at<int>(i,1),0),
-                    shape.at<double>(tri.at<int>(i,1)+n,0));
-                cv::line(image,p1,p2,c);
-            }
-        }
-        #ifdef _OPENMP
-        #pragma omp single
-        #endif
-        {
-            //draw lines (point 0 to 2)
-            for(i = 0; i < tri.rows; i++){
-                if(visi.at<int>(tri.at<int>(i,0),0) == 0 ||
-                    visi.at<int>(tri.at<int>(i,1),0) == 0 ||
-                    visi.at<int>(tri.at<int>(i,2),0) == 0)continue;
-                p1 = cv::Point(shape.at<double>(tri.at<int>(i,0),0),
-                    shape.at<double>(tri.at<int>(i,0)+n,0));
-                p2 = cv::Point(shape.at<double>(tri.at<int>(i,2),0),
-                    shape.at<double>(tri.at<int>(i,2)+n,0));
-                cv::line(image,p1,p2,c);
-            }
-        }
-        #ifdef _OPENMP
-        #pragma omp single
-        #endif
-        {
-            //draw lines (point 1 to 2)
-            for(i = 0; i < tri.rows; i++){
-                if(visi.at<int>(tri.at<int>(i,0),0) == 0 ||
-                    visi.at<int>(tri.at<int>(i,1),0) == 0 ||
-                    visi.at<int>(tri.at<int>(i,2),0) == 0)continue;
-                p1 = cv::Point(shape.at<double>(tri.at<int>(i,2),0),
-                    shape.at<double>(tri.at<int>(i,2)+n,0));
-                p2 = cv::Point(shape.at<double>(tri.at<int>(i,1),0),
-                    shape.at<double>(tri.at<int>(i,1)+n,0));
-                cv::line(image,p1,p2,c);
-            }
-        }
-        #ifdef _OPENMP
-        #pragma omp single
-        #endif
-        {
-            //draw connections
-            c = CV_RGB(0,0,255);
-            for(i = 0; i < con.cols; i++){
-                if(visi.at<int>(con.at<int>(0,i),0) == 0 ||
-                    visi.at<int>(con.at<int>(1,i),0) == 0)continue;
-                p1 = cv::Point(shape.at<double>(con.at<int>(0,i),0),
-                    shape.at<double>(con.at<int>(0,i)+n,0));
-                p2 = cv::Point(shape.at<double>(con.at<int>(1,i),0),
-                    shape.at<double>(con.at<int>(1,i)+n,0));
-                cv::line(image,p1,p2,c,1);
-            }
-        }
-        #ifdef _OPENMP
-        #pragma omp single
-        #endif
-        {
-            //draw points
-            for(i = 0; i < n; i++){
-                if(visi.at<int>(i,0) == 0)continue;
-                p1 = cv::Point(shape.at<double>(i,0),shape.at<double>(i+n,0));
-                c = CV_RGB(255,0,0); cv::circle(image,p1,2,c);
-            }
-        }
-    }return;
+
+    //draw lines (point 0 to 1)
+    for(i = 0; i < tri.rows; i++){
+        if(visi.at<int>(tri.at<int>(i,0),0) == 0 ||
+            visi.at<int>(tri.at<int>(i,1),0) == 0 ||
+            visi.at<int>(tri.at<int>(i,2),0) == 0)continue;
+        p1 = cv::Point(shape.at<double>(tri.at<int>(i,0),0),
+            shape.at<double>(tri.at<int>(i,0)+n,0));
+        p2 = cv::Point(shape.at<double>(tri.at<int>(i,1),0),
+            shape.at<double>(tri.at<int>(i,1)+n,0));
+        cv::line(image,p1,p2,c);
+    }
+    //draw lines (point 0 to 2)
+    for(i = 0; i < tri.rows; i++){
+        if(visi.at<int>(tri.at<int>(i,0),0) == 0 ||
+            visi.at<int>(tri.at<int>(i,1),0) == 0 ||
+            visi.at<int>(tri.at<int>(i,2),0) == 0)continue;
+        p1 = cv::Point(shape.at<double>(tri.at<int>(i,0),0),
+            shape.at<double>(tri.at<int>(i,0)+n,0));
+        p2 = cv::Point(shape.at<double>(tri.at<int>(i,2),0),
+            shape.at<double>(tri.at<int>(i,2)+n,0));
+        cv::line(image,p1,p2,c);
+    }
+    //draw lines (point 1 to 2)
+    for(i = 0; i < tri.rows; i++){
+        if(visi.at<int>(tri.at<int>(i,0),0) == 0 ||
+            visi.at<int>(tri.at<int>(i,1),0) == 0 ||
+            visi.at<int>(tri.at<int>(i,2),0) == 0)continue;
+        p1 = cv::Point(shape.at<double>(tri.at<int>(i,2),0),
+            shape.at<double>(tri.at<int>(i,2)+n,0));
+        p2 = cv::Point(shape.at<double>(tri.at<int>(i,1),0),
+            shape.at<double>(tri.at<int>(i,1)+n,0));
+        cv::line(image,p1,p2,c);
+    }
+    //draw connections
+    c = CV_RGB(0,0,255);
+    for(i = 0; i < con.cols; i++){
+        if(visi.at<int>(con.at<int>(0,i),0) == 0 ||
+            visi.at<int>(con.at<int>(1,i),0) == 0)continue;
+        p1 = cv::Point(shape.at<double>(con.at<int>(0,i),0),
+            shape.at<double>(con.at<int>(0,i)+n,0));
+        p2 = cv::Point(shape.at<double>(con.at<int>(1,i),0),
+            shape.at<double>(con.at<int>(1,i)+n,0));
+        cv::line(image,p1,p2,c,1);
+    }
+    //draw points
+    for(i = 0; i < n; i++){
+        if(visi.at<int>(i,0) == 0)continue;
+        p1 = cv::Point(shape.at<double>(i,0),shape.at<double>(i+n,0));
+        c = CV_RGB(255,0,0); cv::circle(image,p1,2,c);
+    }
+    return;
 }
 //=============================================================================
 extern "C"
@@ -179,16 +151,9 @@ JNIEXPORT jboolean JNICALL Java_zimmermann_larissa_facetracker_MainActivity_trac
         failed = false;
         Draw(face,model._shape,con,tri,model._clm._visi[idx]);
     }else{
-        if(show){
-            cv::Mat R(im,cvRect(0,0,150,50));
-            R = cv::Scalar(0,0,255);
-        }
         model.FrameReset();
         failed = true;
     }
-
-    //show image and check for user input
-    //imshow("Face Tracker",mRgb);
     return (jboolean)failed;
 }
 //=============================================================================
