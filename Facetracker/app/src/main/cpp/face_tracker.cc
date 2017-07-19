@@ -1,42 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2010, Jason Mora Saragih, all rights reserved.
-//
-// This file is part of FaceTracker.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-//
-//     * The software is provided under the terms of this licence stricly for
-//       academic, non-commercial, not-for-profit purposes.
-//     * Redistributions of source code must retain the above copyright notice,
-//       this list of conditions (licence) and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions (licence) and the following disclaimer
-//       in the documentation and/or other materials provided with the
-//       distribution.
-//     * The name of the author may not be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//     * As this software depends on other libraries, the user must adhere to
-//       and keep in place any licencing terms of those libraries.
-//     * Any publications arising from the use of this software, including but
-//       not limited to academic journal and conference publications, technical
-//       reports and manuals, must cite the following work:
-//
-//       J. M. Saragih, S. Lucey, and J. F. Cohn. Face Alignment through
-//       Subspace Constrained Mean-Shifts. International Conference of Computer
-//       Vision (ICCV), September, 2009.
-//
-// THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
-// WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
-// EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
-// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-// THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-///////////////////////////////////////////////////////////////////////////////
 //Includes facetracker
 #include "FaceTracker/Tracker.h"
 #include <jni.h>
@@ -44,6 +5,13 @@
 //using namespace FACETRACKER;
 using namespace cv;
 //using namespace std;
+bool failed = true;
+int fnum = 0;
+cv::Mat tri;
+cv::Mat con;
+int64 t1, t0;
+
+FACETRACKER::Tracker model("/storage/emulated/0/assets/model/face2.tracker");
 
 //=============================================================================
 void Draw(cv::Mat &image,cv::Mat &shape,cv::Mat &con,cv::Mat &tri,cv::Mat &visi){
@@ -101,25 +69,33 @@ void Draw(cv::Mat &image,cv::Mat &shape,cv::Mat &con,cv::Mat &tri,cv::Mat &visi)
     }
     return;
 }
+
+double round_(double valor){
+    return floor(valor+0.5);
+}
+
 //=============================================================================
 extern "C"
-JNIEXPORT jboolean JNICALL Java_zimmermann_larissa_facetracker_MainActivity_trackFace(JNIEnv*, jobject, jlong addrRgba, jlong addrFace, jboolean pFailed) {
+JNIEXPORT void JNICALL Java_zimmermann_larissa_facetracker_MainActivity_initAllFiles(JNIEnv*, jobject) {
+    char conFile[256], triFile[256];
 
-    char ftFile[256],conFile[256],triFile[256];
-    bool fcheck = false;
-    //double scale = 1;
-    int fpd = -1;
-    bool show = true;
-
-    /*strcpy(ftFile, "storage/sdcard0/assets/model/face2.tracker");
-    strcpy(conFile, "storage/sdcard0/assets/model/face.con");
-    strcpy(triFile, "storage/sdcard0/assets/model/face.tri");*/
-
-    strcpy(ftFile, "/storage/emulated/0/assets/model/face2.tracker");
     strcpy(conFile, "/storage/emulated/0/assets/model/face.con");
     strcpy(triFile, "/storage/emulated/0/assets/model/face.tri");
 
-    //set other tracking parameters
+    tri = FACETRACKER::IO::LoadTri(triFile);
+    con = FACETRACKER::IO::LoadCon(conFile);
+
+    t0 = cvGetTickCount();
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL Java_zimmermann_larissa_facetracker_MainActivity_trackFace(JNIEnv*, jobject, jlong addrRgba, jlong addrFace, jboolean pFailed) {
+    bool fcheck = false;
+    int fpd = -1;
+    double fps = 0;
+    char disp[50];
+
+    //Set other tracking parameters
     std::vector<int> wSize1(1);
     wSize1[0] = 7;
     std::vector<int> wSize2(3);
@@ -127,21 +103,15 @@ JNIEXPORT jboolean JNICALL Java_zimmermann_larissa_facetracker_MainActivity_trac
     wSize2[1] = 9;
     wSize2[2] = 7;
     int nIter = 5;
-    double clamp=3,fTol=0.01;
-    FACETRACKER::Tracker model(ftFile);
-    cv::Mat tri=FACETRACKER::IO::LoadTri(triFile);
-    cv::Mat con=FACETRACKER::IO::LoadCon(conFile);
+    double clamp = 3, fTol = 0.01;
 
-    //initialize camera and display window
+    //Initialize camera and display window
     cv::Mat im = *(Mat*) addrRgba;
     cv::Mat face = *(Mat*) addrFace;
     cv::Mat gray;
 
-    //loop until quit (i.e user presses ESC)
-    bool failed = (bool)pFailed;
-    
-    cv::flip(im,im,1);
-    cv::cvtColor(im,gray,CV_BGR2GRAY);
+    cv::flip(im, im, 1);
+    cv::cvtColor(im, gray, CV_BGR2GRAY);
 
     //track this image
     std::vector<int> wSize;
@@ -150,14 +120,31 @@ JNIEXPORT jboolean JNICALL Java_zimmermann_larissa_facetracker_MainActivity_trac
     }else{
         wSize = wSize1;
     }
-    if(model.Track(gray,wSize,fpd,nIter,clamp,fTol,fcheck) == 0){
+
+    //Track the face
+    if(model.Track(gray, wSize, fpd, nIter, clamp, fTol, fcheck) == 0){
         int idx = model._clm.GetViewIdx();
         failed = false;
-        Draw(face,model._shape,con,tri,model._clm._visi[idx]);
+        Draw(face, model._shape, con, tri, model._clm._visi[idx]);
     }else{
         model.FrameReset();
         failed = true;
     }
+
+    //Draw framerate on display image
+    if(fnum >= 9){
+        t1 = cvGetTickCount();
+        fps = 10.0/((double(t1-t0)/cvGetTickFrequency())/1e+6);
+        t0 = t1;
+        fnum = 0;
+    }
+    else {
+        fnum += 1;
+    }
+
+    sprintf(disp,"%d frames/sec",(int)round_(fps));
+    cv::putText(face, disp, cv::Point(10,20), CV_FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255,255,255));
+
     return (jboolean)failed;
 }
 //=============================================================================
