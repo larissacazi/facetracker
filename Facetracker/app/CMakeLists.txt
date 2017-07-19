@@ -25,13 +25,13 @@ find_library(log-lib log)
 # build script, prebuilt third-party libraries, or system libraries.
 
 #set(pathToProject C:/Users/laris/AndroidStudioProjects/Facetracker)
-#set(pathToProject C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker)
-#set(pathToOpenCv C:/opencv-3.2.0-android-sdk/OpenCV-android-sdk)
-#set(pathToFaceTracker C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker/app/src/main/cpp/FaceTracker)
+set(pathToProject C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker)
+set(pathToOpenCv C:/opencv-3.2.0-android-sdk/OpenCV-android-sdk)
+set(pathToFaceTracker C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker/app/src/main/cpp/FaceTracker)
 
-set(pathToProject /run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/)
-set(pathToOpenCv /run/media/gabriel/Arquivos/Graduacao/2017.01/SO/OpenCV-android-sdk/)
-set(pathToFaceTracker /run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/app/src/main/cpp/FaceTracker)
+#set(pathToProject /run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/)
+#set(pathToOpenCv /run/media/gabriel/Arquivos/Graduacao/2017.01/SO/OpenCV-android-sdk/)
+#set(pathToFaceTracker /run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/app/src/main/cpp/FaceTracker)
 
 set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
@@ -43,7 +43,7 @@ set_target_properties(lib_opencv PROPERTIES IMPORTED_LOCATION ${pathToProject}/a
 target_link_libraries(native-lib $\{log-lib} lib_opencv)
 
 #includes FaceTracker
-include_directories(/run/media/gabriel/Arquivos/Git/FaceTrackerAndroid/Facetracker/app/src/main/cpp/FaceTracker)
+include_directories(C:/Users/laris/Documents/Mestrado/Disciplinas/2017.1/SistemasOperacionais/Projeto/facetracker/Facetracker/app/src/main/cpp/FaceTracker)
 
 #include libraries
 add_library(CLM SHARED src/main/cpp/CLM.cc)

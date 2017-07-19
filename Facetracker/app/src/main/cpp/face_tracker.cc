@@ -111,9 +111,13 @@ JNIEXPORT jboolean JNICALL Java_zimmermann_larissa_facetracker_MainActivity_trac
     int fpd = -1;
     bool show = true;
 
-    strcpy(ftFile, "storage/sdcard0/assets/model/face2.tracker");
+    /*strcpy(ftFile, "storage/sdcard0/assets/model/face2.tracker");
     strcpy(conFile, "storage/sdcard0/assets/model/face.con");
-    strcpy(triFile, "storage/sdcard0/assets/model/face.tri");
+    strcpy(triFile, "storage/sdcard0/assets/model/face.tri");*/
+
+    strcpy(ftFile, "/storage/emulated/0/assets/model/face2.tracker");
+    strcpy(conFile, "/storage/emulated/0/assets/model/face.con");
+    strcpy(triFile, "/storage/emulated/0/assets/model/face.tri");
 
     //set other tracking parameters
     std::vector<int> wSize1(1);
